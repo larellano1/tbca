@@ -1,3 +1,5 @@
+# -*- coding: latin-1 -*-
+
 import pandas as pd
 import requests
 import numpy as np
@@ -19,12 +21,13 @@ def baixar_tabela():
     tabelas = []
 
     for cod in produtos["Cod"]:
-        produto = produtos[produtos["Cod"] == cod]["Produto"]
-        detalhe = browser.execute_script("getProdMedida('{0}')".format(cod))
+        produto = str(produtos[produtos["Cod"] == cod]["Produto"])
+        print('{} - {}'.format(cod, produto))
+        browser.execute_script("getProdMedida('{0}')".format(cod))
         time.sleep(1)
         innerHtml = browser.execute_script("return document.body.innerHTML")
         soup = bs4.BeautifulSoup(innerHtml)
-        table = pd.read_html(str(soup.find(id="itproduto")))[0]
+        table = pd.read_html(str(soup.find(id="itproduto")), encoding='latin1')[0]
         table = table.iloc[:,:3]
         table["Cod"] = cod
         table["Produto"] = produto
@@ -33,6 +36,7 @@ def baixar_tabela():
     df = pd.concat(tabelas)
     pd.to_pickle(df,"tbca.pickle")
 
+#baixar_tabela()
 
 df = pd.read_pickle("tbca.pickle")
-print(df[(df['Componente'] == 'Energia') & (df['Unidades'] == 'kcal')].pivot_table(index=['Cod'], values='Valor por 100 g', aggfunc='sum'))
+df[(df['Componente'] == 'Energia') & (df['Unidades'] == 'kcal')]['Valor por 100 g']
